@@ -1,6 +1,7 @@
-package org.firstinspires.ftc.teamcode.Autonomous;
+package org.firstinspires.ftc.teamcode.TestClasses;
 
 import com.kauailabs.navx.ftc.AHRS;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.DriversAndHardware.Hardware3415;
  * Created by shlok.khandelwal on 3/3/2017.
  */
 
+@Autonomous(name="Turning Tests", group="Test")
 public class TurningTests extends LinearOpMode {
     Hardware3415 balin = new Hardware3415();
     public void runOpMode(){
@@ -53,7 +55,7 @@ public class TurningTests extends LinearOpMode {
         balin.shoot(0);
         sleep(200);
         //Turning for the white line
-        AlignToWithinOf(36, 1, .15); //Used Trig to calculate it might need to be adjusted but one degree of variance should be fine for detecting the line
+        AlignToWithinOf(36, 1, .25); //Used Trig to calculate it might need to be adjusted but one degree of variance should be fine for detecting the line
         //First White Line code:
         boolean white_line = false;
         balin.collector.setPower(-1.0);
@@ -72,7 +74,7 @@ public class TurningTests extends LinearOpMode {
         balin.setDrivePower(0);
         sleep(300);
         //Once we are at the white line we will attempt to turn and face the wall
-        AlignToWithinOf((90-balin.navx_device.getYaw()), 1, .15); //This should make it so that we are near ish to face the wall
+        AlignToWithinOf((90-balin.navx_device.getYaw()), 1, .25); //This should make it so that we are near ish to face the wall
         //This strafe is for when we get two ods's so I will leave this commented out:
         /*
                 while ((!balin.odsFront.getRawLightDetected() >= .5 || !balin.odsBack.getRawLightDetected >=.5) && opModeIsActive() && !isStopRequested()) {
@@ -97,7 +99,7 @@ public class TurningTests extends LinearOpMode {
                 }
          */
         //Copy and Paste the previous beacon code to hit beacon etc we should be straight at this point b/c of the two ods's
-        AlignToWithinOf((90-balin.navx_device.getYaw()), .5, .12); //We should be perpendicular to the wall at this point
+        AlignToWithinOf((90-balin.navx_device.getYaw()), .5, .22); //We should be perpendicular to the wall at this point
         //Copy and paste strafe code to the next beacon
         //Use the above adjustment strafe when we get the two beacon code
         //Copy and paste beacon code
