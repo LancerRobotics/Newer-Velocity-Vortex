@@ -92,7 +92,7 @@ public class Hardware3415 {
     //public static final String lineTrackerFName = "lineTrackerF";
     //public static final String lineTrackerBName = "lineTrackerB";
     public static final String odsName = "ods";
-    public static final String odsFName = "odsF";
+    public static final String odsbName = "odsB";
     public static final String sonarName = "sonar";
     public static final String sonarName2 = "sonar2";
 
@@ -217,7 +217,7 @@ public class Hardware3415 {
             //lineTrackerF = hwMap.colorSensor.get(lineTrackerFName);
             //lineTrackerB = hwMap.colorSensor.get(lineTrackerBName);
             ods = hwMap.opticalDistanceSensor.get(odsName);
-            //odsF = hwMap.opticalDistanceSensor.get(odsFName);
+            odsB = hwMap.opticalDistanceSensor.get(odsbName);
             RANGE1 = hwMap.i2cDevice.get(sonarName);
             RANGE1Reader = new I2cDeviceSynchImpl(RANGE1, I2cAddr.create8bit(0x28), false);
             RANGE1Reader.engage();

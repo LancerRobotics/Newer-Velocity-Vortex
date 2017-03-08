@@ -76,28 +76,32 @@ public class TurningTests extends LinearOpMode {
         //Once we are at the white line we will attempt to turn and face the wall
         AlignToWithinOf((90-balin.navx_device.getYaw()), 1, .25); //This should make it so that we are near ish to face the wall
         //This strafe is for when we get two ods's so I will leave this commented out:
-        /*
-                while ((!balin.odsFront.getRawLightDetected() >= .5 || !balin.odsBack.getRawLightDetected >=.5) && opModeIsActive() && !isStopRequested()) {
-                    if(!balin.odsFront.getRawLightDetected()>=.5 && !balin.odsBack.getRawLightDetected()>=.5){
+
+                while (!(balin.ods.getRawLightDetected() >= .5) || !(balin.odsB.getRawLightDetected() >=.5) && opModeIsActive() && !isStopRequested()) {
+                    if(!(balin.ods.getRawLightDetected()>=.5) && !(balin.odsB.getRawLightDetected()>=.5)){
                         balin.fr.setPower(-.4);
                         balin.br.setPower(.4);
                         balin.fl.setPower(.4);
                         balin.bl.setPower(-.4);
                     }
-                    else if(balin.odsFront.getRawLightDetected()>=.5 && !balin.odsBack.getRawLightDetected()>=.5){
+                    else if(balin.ods.getRawLightDetected()>=.5 && !(balin.odsB.getRawLightDetected()>=.5)){
                         balin.br.setPower(.4);
                         balin.bl.setPower(-.4);
+                        balin.fr.setPower(0);
+                        balin.fl.setPower(0);
                     }
-                    else if(!balin.odsFront.getRawLightDetected()>=.5 && balin.odsBack.getRawLightDetected()>=.5){
+                    else if(!(balin.ods.getRawLightDetected()>=.5) && balin.odsB.getRawLightDetected()>=.5){
                         balin.fr.setPower(-.4);
                         balin.fl.setPower(.4);
+                        balin.br.setPower(0);
+                        balin.bl.setPower(0);
                     }
                     else{
                         balin.setDrivePower(0);
                     }
 
                 }
-         */
+
         //Copy and Paste the previous beacon code to hit beacon etc we should be straight at this point b/c of the two ods's
         AlignToWithinOf((90-balin.navx_device.getYaw()), .5, .22); //We should be perpendicular to the wall at this point
         //Copy and paste strafe code to the next beacon
