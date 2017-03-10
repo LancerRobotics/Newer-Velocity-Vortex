@@ -33,9 +33,12 @@ public class TurningTests extends LinearOpMode {
         telemetry.update();
         balin.changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         waitForStart();
+        balin.navx_device.zeroYaw();
         balin.moveStraightnew(6, this); //Set this further back to allow for more error when turning the angle
         balin.setDrivePower(0);
+        sleep(500);
         // Shoots both particles for 30 points
+        /*
         balin.collector.setPower(0);
         sleep(500);
         //Shoot first particle
@@ -54,9 +57,12 @@ public class TurningTests extends LinearOpMode {
         sleep(600);
         balin.shoot(0);
         sleep(200);
+        */
         //Turning for the white line
-        AlignToWithinOf(36, 1, .25); //Used Trig to calculate it might need to be adjusted but one degree of variance should be fine for detecting the line
+        balin.changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        AlignToWithinOf(36, 1, .22); //Used Trig to calculate it might need to be adjusted but one degree of variance should be fine for detecting the line
         //First White Line code:
+        sleep(500);
         boolean white_line = false;
         balin.collector.setPower(-1.0);
         balin.setDrivePower(.22);
@@ -73,26 +79,39 @@ public class TurningTests extends LinearOpMode {
         }
         balin.setDrivePower(0);
         sleep(300);
+        AlignToWithinOf(90, 1, .23);
+        balin.rest();
+        sleep(200);
+        white_line = false;
+        while (!white_line && opModeIsActive() && !isStopRequested()) {
+            if (balin.ods.getRawLightDetected() >= .5) {
+                white_line = true;
+            }
+            balin.fr.setPower(-.3);
+            balin.br.setPower(.3);
+            balin.fl.setPower(.3);
+            balin.bl.setPower(-.3);
+        }
         //Once we are at the white line we will attempt to turn and face the wall
-        AlignToWithinOf((90-balin.navx_device.getYaw()), 1, .25); //This should make it so that we are near ish to face the wall
+        //AlignToWithinOf((90-balin.navx_device.getYaw()), 1, .22); //This should make it so that we are near ish to face the wall
         //This strafe is for when we get two ods's so I will leave this commented out:
-
-                while (!(balin.ods.getRawLightDetected() >= .5) || !(balin.odsB.getRawLightDetected() >=.5) && opModeIsActive() && !isStopRequested()) {
-                    if(!(balin.ods.getRawLightDetected()>=.5) && !(balin.odsB.getRawLightDetected()>=.5)){
-                        balin.fr.setPower(-.4);
-                        balin.br.setPower(.4);
-                        balin.fl.setPower(.4);
-                        balin.bl.setPower(-.4);
+//ODS B HAS A THRESHOLD VALUE OF 3
+                while ((!(balin.ods.getRawLightDetected() >= .5) || !(balin.odsB.getRawLightDetected() >=3)) && opModeIsActive() && !isStopRequested()) {
+                    if(!(balin.ods.getRawLightDetected()>=.5) && !(balin.odsB.getRawLightDetected()>=3)){
+                        balin.fr.setPower(-.3);
+                        balin.br.setPower(.3);
+                        balin.fl.setPower(.3);
+                        balin.bl.setPower(-.3);
                     }
-                    else if(balin.ods.getRawLightDetected()>=.5 && !(balin.odsB.getRawLightDetected()>=.5)){
-                        balin.br.setPower(.4);
-                        balin.bl.setPower(-.4);
+                    else if(balin.ods.getRawLightDetected()>=.5 && !(balin.odsB.getRawLightDetected()>=3)){
+                        balin.br.setPower(.3);
+                        balin.bl.setPower(-.3);
                         balin.fr.setPower(0);
                         balin.fl.setPower(0);
                     }
-                    else if(!(balin.ods.getRawLightDetected()>=.5) && balin.odsB.getRawLightDetected()>=.5){
-                        balin.fr.setPower(-.4);
-                        balin.fl.setPower(.4);
+                    else if(!(balin.ods.getRawLightDetected()>=.5) && balin.odsB.getRawLightDetected()>=3){
+                        balin.fr.setPower(-.3);
+                        balin.fl.setPower(.3);
                         balin.br.setPower(0);
                         balin.bl.setPower(0);
                     }
@@ -101,9 +120,10 @@ public class TurningTests extends LinearOpMode {
                     }
 
                 }
+        balin.setDrivePower(0);
 
         //Copy and Paste the previous beacon code to hit beacon etc we should be straight at this point b/c of the two ods's
-        AlignToWithinOf((90-balin.navx_device.getYaw()), .5, .22); //We should be perpendicular to the wall at this point
+        //AlignToWithinOf((90-balin.navx_device.getYaw()), .5, .22); //We should be perpendicular to the wall at this point
         //Copy and paste strafe code to the next beacon
         //Use the above adjustment strafe when we get the two beacon code
         //Copy and paste beacon code
@@ -132,6 +152,7 @@ public class TurningTests extends LinearOpMode {
         TurnRightAbsolute(expected - threshold, power, this);
         TurnLeftAbsolute(expected + threshold, power, this);
         TurnRightAbsolute(expected - threshold, power, this);
+        balin.changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
     public void TurnLeftPLoop(double degrees, double maxPower, LinearOpMode opMode){
         //Max Power should be normally set to .5, but for very precise turns a value of .05 is reccomended.

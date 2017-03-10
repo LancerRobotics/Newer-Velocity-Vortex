@@ -398,6 +398,25 @@ public class Hardware3415 {
             return true;
         return false;
     }
+    public void Move(double centimeters, double power) {
+        changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        double ticks = (int) (centimeters * 1140.0 / (4.0 * Math.PI * 2.0));
+        int RBPos = Math.abs(br.getCurrentPosition());
+        int RFPos = Math.abs(fr.getCurrentPosition());
+        int LBPos = Math.abs(bl.getCurrentPosition());
+        int LFPos = Math.abs(fl.getCurrentPosition());
+        double avg = (RBPos + LBPos + RFPos + LFPos)/4;
+        while(avg < ticks) {
+            setDrivePower(power);
+            RBPos = Math.abs(br.getCurrentPosition());
+            RFPos = Math.abs(fr.getCurrentPosition());
+            LBPos = Math.abs(bl.getCurrentPosition());
+            LFPos = Math.abs(fl.getCurrentPosition());
+            avg = (RBPos + LBPos + RFPos + LFPos) / 4;
+        }
+        setDrivePower(0);
+    }
+
     public boolean moveStraightnew(double inches, LinearOpMode opMode){
         changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
