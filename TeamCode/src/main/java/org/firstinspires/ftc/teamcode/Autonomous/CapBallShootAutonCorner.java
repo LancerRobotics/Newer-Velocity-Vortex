@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.DriversAndHardware.Hardware3415;
 public class CapBallShootAutonCorner extends LinearOpMode {
     Hardware3415 balin = new Hardware3415();
     public void runOpMode(){
-        balin.moveStraightnew(8, this);
+        balin.moveStraightnew(16, this);
         balin.shoot(1.0);
         sleep(600);
         balin.shoot(0);
@@ -24,13 +24,12 @@ public class CapBallShootAutonCorner extends LinearOpMode {
         balin.collector.setPower(0);
         balin.door.setPosition(balin.DOOR_CLOSED);
         sleep(500);
-        //Shoot second particle
         balin.shoot(1.0);
         sleep(600);
         balin.shoot(0);
         sleep(200);
-        balin.setDrivePower(0.9);
-        sleep(1000);
+        balin.setDrivePower(0.7);
+        sleep(1500);
         balin.setDrivePower(0);
     }
 }
