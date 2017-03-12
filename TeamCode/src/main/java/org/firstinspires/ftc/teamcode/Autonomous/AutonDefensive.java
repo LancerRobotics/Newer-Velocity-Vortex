@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.DriversAndHardware.Hardware3415;
@@ -7,6 +8,7 @@ import org.firstinspires.ftc.teamcode.DriversAndHardware.Hardware3415;
 /**
  * Created by dina.brustein on 3/11/2017.
  */
+@Autonomous(name = "Defensive Auton", group = "Auton")
 
 public class AutonDefensive extends LinearOpMode {
     Hardware3415 balin = new Hardware3415();
