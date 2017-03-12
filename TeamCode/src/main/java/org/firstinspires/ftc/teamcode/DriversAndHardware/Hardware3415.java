@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.DriversAndHardware;
 
 import com.kauailabs.navx.ftc.AHRS;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -57,7 +58,7 @@ public class Hardware3415 {
     public boolean beaconBlue;
 
     public static final double LEFT_BEACON_INITIAL_STATE = 190.0 / 255;
-    public static final double LEFT_BEACON_PUSH = 24.0 / 255;
+    public static final double LEFT_BEACON_PUSH = 34.0 / 255;
     public static final double RIGHT_BEACON_PUSH= 220.0 / 255;
     public static final double RIGHT_BEACON_INITIAL_STATE = 54.0/255;
     public static final double LEFT_CLAMP_INITIAL_STATE = 1;
@@ -106,13 +107,6 @@ public class Hardware3415 {
     public static final double WHEEL_DIAMETER = 3.93701;
     public static final String cdim = "dim";
 
-    byte[] range1Cache; //The read will return an array of bytes. They are stored in this variable
-
-    public static final int RANGE1_REG_START = 0x04; //Register to start reading
-    public static final int RANGE1_READ_LENGTH = 2; //Number of byte to read
-
-    public I2cDevice RANGE1 = null;
-    public I2cDeviceSynch RANGE1Reader = null;
 
     byte[] range2Cache;
 
@@ -121,7 +115,6 @@ public class Hardware3415 {
 
     public I2cDevice RANGE2 = null;
     public I2cDeviceSynch RANGE2Reader = null;
-
     public DigitalChannel limit = null;
     public boolean limitState;
 
@@ -218,9 +211,6 @@ public class Hardware3415 {
             //lineTrackerB = hwMap.colorSensor.get(lineTrackerBName);
             ods = hwMap.opticalDistanceSensor.get(odsName);
             odsB = hwMap.opticalDistanceSensor.get(odsbName);
-            RANGE1 = hwMap.i2cDevice.get(sonarName);
-            RANGE1Reader = new I2cDeviceSynchImpl(RANGE1, I2cAddr.create8bit(0x28), false);
-            RANGE1Reader.engage();
 
             RANGE2 = hwMap.i2cDevice.get(sonarName2);
             RANGE2Reader = new I2cDeviceSynchImpl(RANGE2, I2cAddr.create8bit(0x38), false);
@@ -246,6 +236,7 @@ public class Hardware3415 {
             limitState = limit.getState();
         }
     }
+
 
     /***
      * waitForTick implements a periodic delay. However, this acts like a metronome with a regular
@@ -628,10 +619,19 @@ public class Hardware3415 {
     }
 
     public static double coast(int target, int currentPosition) {
+        target = (int) (target * 1140.0 / (4.0 * Math.PI * 2.0));
         target = Math.abs(target);
         currentPosition = Math.abs(currentPosition);
         double power = (currentPosition * 1.0) / target;
-        power = .9 / (1 + Math.pow(2.7182, 1.65 * power));
+        power = .9 / (1 + Math.pow(2.7182, 1.34 * power));
+        return power;
+    }
+    public static double coastStrafe(int target, int currentPosition) {
+        target = (int) (target * 1140.0 / (4.0 * Math.PI * 2.0));
+        target = Math.abs(target);
+        currentPosition = Math.abs(currentPosition);
+        double power = (currentPosition * 1.0) / target;
+        power = 1.4 / (1 + Math.pow(2.7182, .8 * power));
         return power;
     }
 
@@ -902,11 +902,7 @@ public class Hardware3415 {
         }
     }
 
-    public double readSonar1() {
-        range1Cache = RANGE1Reader.read(RANGE1_REG_START, RANGE1_READ_LENGTH);
-        double sonarData = range1Cache[0] & 0xFF;
-        return sonarData;
-    }
+
 
     public double readSonar2() {
         range2Cache = RANGE2Reader.read(RANGE2_REG_START, RANGE2_READ_LENGTH);
@@ -928,7 +924,9 @@ public class Hardware3415 {
             } else {
                 done = true;
             }
+            opMode.telemetry.addData("Range: ", readSonar2());
             restAndSleep(opMode);
+            opMode.telemetry.update();
         }
     }
 
@@ -943,22 +941,10 @@ public class Hardware3415 {
             return "N/A";
         }
     }
+    public void Straighten(double a){
 
-    public void Straighten(double power){
-        while(Math.abs(Math.round(readSonar1()) - Math.round(readSonar2()))> 2 ){
-            if(readSonar1()< readSonar2() && ((readSonar1()<50) || (readSonar2()<50))){
-                fl.setPower(-power);
-                bl.setPower(-power);
-                fr.setPower(0);
-                br.setPower(0);
-            }
-            if(readSonar1() > readSonar2() && ((readSonar1()<50) || (readSonar2()<50))){
-                fr.setPower(-power);
-                br.setPower(-power);
-                fl.setPower(0);
-                bl.setPower(0);
-            }
-        }
-        setDrivePower(0);
     }
+
+
+
 }
