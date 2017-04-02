@@ -71,7 +71,8 @@ public class TurningTests extends LinearOpMode {
             if (balin.ods.getRawLightDetected() >= .5) {
                 white_line = true;
             }
-            balin.setDrivePower(balin.coast(62, balin.fr.getCurrentPosition()));
+            int iPos = balin.fr.getCurrentPosition();
+            balin.setDrivePower(balin.coast(62, balin.fr.getCurrentPosition(), iPos));
             telemetry.addData("Following White Line: ", balin.ods.getLightDetected());
             telemetry.addData("FL: ", balin.fl.getPower());
             telemetry.addData("FR: ", balin.fr.getPower());
