@@ -442,6 +442,7 @@ public class Hardware3415 {
         setDrivePower(0);
         return true;
     }
+
     public boolean turnNew(double inches, LinearOpMode opMode){
         changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

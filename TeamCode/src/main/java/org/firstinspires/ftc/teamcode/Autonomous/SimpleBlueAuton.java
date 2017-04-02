@@ -159,7 +159,7 @@ public class SimpleBlueAuton extends LinearOpMode {
                 }
             }
             balin.setDrivePower(0);
-            balin.Straighten(.27);
+           // balin.Straighten(.27);
             balin.adjustToDistance(14, .27, this);
             sleep(150);
             white_line = false;

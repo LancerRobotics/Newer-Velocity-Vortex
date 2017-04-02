@@ -33,9 +33,12 @@ public class TurningTests extends LinearOpMode {
         telemetry.update();
         balin.changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         waitForStart();
+        balin.navx_device.zeroYaw();
         balin.moveStraightnew(6, this); //Set this further back to allow for more error when turning the angle
         balin.setDrivePower(0);
+        sleep(500);
         // Shoots both particles for 30 points
+        /*
         balin.collector.setPower(0);
         sleep(500);
         //Shoot first particle
@@ -54,16 +57,21 @@ public class TurningTests extends LinearOpMode {
         sleep(600);
         balin.shoot(0);
         sleep(200);
+        */
         //Turning for the white line
-        AlignToWithinOf(36, 1, .25); //Used Trig to calculate it might need to be adjusted but one degree of variance should be fine for detecting the line
+        balin.changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        AlignToWithinOf(18, 1, .23); //Used Trig to calculate it might need to be adjusted but one degree of variance should be fine for detecting the line
         //First White Line code:
+        sleep(500);
         boolean white_line = false;
         balin.collector.setPower(-1.0);
-        balin.setDrivePower(.22);
+        //balin.setDrivePower(.22);
+
         while (!white_line && opModeIsActive() && !isStopRequested()) {
             if (balin.ods.getRawLightDetected() >= .5) {
                 white_line = true;
             }
+            balin.setDrivePower(balin.coast(62, balin.fr.getCurrentPosition()));
             telemetry.addData("Following White Line: ", balin.ods.getLightDetected());
             telemetry.addData("FL: ", balin.fl.getPower());
             telemetry.addData("FR: ", balin.fr.getPower());
@@ -73,26 +81,31 @@ public class TurningTests extends LinearOpMode {
         }
         balin.setDrivePower(0);
         sleep(300);
-        //Once we are at the white line we will attempt to turn and face the wall
-        AlignToWithinOf((90-balin.navx_device.getYaw()), 1, .25); //This should make it so that we are near ish to face the wall
-        //This strafe is for when we get two ods's so I will leave this commented out:
+        AlignToWithinOf(90, 1, .23);
+        sleep(200);
+        balin.rest();
+        sleep(200);
 
-                while (!(balin.ods.getRawLightDetected() >= .5) || !(balin.odsB.getRawLightDetected() >=.5) && opModeIsActive() && !isStopRequested()) {
-                    if(!(balin.ods.getRawLightDetected()>=.5) && !(balin.odsB.getRawLightDetected()>=.5)){
-                        balin.fr.setPower(-.4);
-                        balin.br.setPower(.4);
-                        balin.fl.setPower(.4);
-                        balin.bl.setPower(-.4);
+        //Once we are at the white line we will attempt to turn and face the wall
+        //AlignToWithinOf((90-balin.navx_device.getYaw()), 1, .22); //This should make it so that we are near ish to face the wall
+        //This strafe is for when we get two ods's so I will leave this commented out:
+//ODS B HAS A THRESHOLD VALUE OF 3
+               /* while ((!(balin.ods.getRawLightDetected() >= .5) || !(balin.odsB.getRawLightDetected() >=3)) && opModeIsActive() && !isStopRequested()) {
+                    if(!(balin.ods.getRawLightDetected()>=.5) && !(balin.odsB.getRawLightDetected()>=3)){
+                        balin.fr.setPower(-.35);
+                        balin.br.setPower(.35);
+                        balin.fl.setPower(.35);
+                        balin.bl.setPower(-.35);
                     }
-                    else if(balin.ods.getRawLightDetected()>=.5 && !(balin.odsB.getRawLightDetected()>=.5)){
-                        balin.br.setPower(.4);
-                        balin.bl.setPower(-.4);
+                    else if(balin.ods.getRawLightDetected()>=.5 && !(balin.odsB.getRawLightDetected()>=3)){
+                        balin.br.setPower(.35);
+                        balin.bl.setPower(-.35);
                         balin.fr.setPower(0);
                         balin.fl.setPower(0);
                     }
-                    else if(!(balin.ods.getRawLightDetected()>=.5) && balin.odsB.getRawLightDetected()>=.5){
-                        balin.fr.setPower(-.4);
-                        balin.fl.setPower(.4);
+                    else if(!(balin.ods.getRawLightDetected()>=.5) && balin.odsB.getRawLightDetected()>=3){
+                        balin.fr.setPower(-.35);
+                        balin.fl.setPower(.35);
                         balin.br.setPower(0);
                         balin.bl.setPower(0);
                     }
@@ -101,12 +114,118 @@ public class TurningTests extends LinearOpMode {
                     }
 
                 }
-
+                */
+        white_line = false;
+        while (!white_line && opModeIsActive() && !isStopRequested()) {
+            if (balin.ods.getRawLightDetected() >= .5) {
+                white_line = true;
+            }
+            balin.fr.setPower(-.4);
+            balin.br.setPower(.4);
+            balin.fl.setPower(.4);
+            balin.bl.setPower(-.4);
+        }
+        balin.setDrivePower(0);
+        sleep(200);
+        AlignToWithinOf(90, .5, .18);
+        balin.adjustToDistance(14, .15, this);
         //Copy and Paste the previous beacon code to hit beacon etc we should be straight at this point b/c of the two ods's
-        AlignToWithinOf((90-balin.navx_device.getYaw()), .5, .22); //We should be perpendicular to the wall at this point
+        //AlignToWithinOf((90-balin.navx_device.getYaw()), .5, .22); //We should be perpendicular to the wall at this point
         //Copy and paste strafe code to the next beacon
         //Use the above adjustment strafe when we get the two beacon code
         //Copy and paste beacon code
+        telemetry.addLine("Detecting Color");
+        telemetry.update();
+        String color = balin.detectColor();
+        balin.setDrivePower(0);
+        if (color.equals("Red")) {
+            balin.beaconPushLeft.setPosition(balin.LEFT_BEACON_PUSH);
+            balin.beaconPushRight.setPosition(balin.RIGHT_BEACON_INITIAL_STATE);
+            telemetry.addData("Color: ", color);
+            telemetry.update();
+            sleep(500);
+        } else if (color.equals("Blue")) {
+            balin.beaconPushLeft.setPosition(balin.LEFT_BEACON_INITIAL_STATE);
+            balin.beaconPushRight.setPosition(balin.RIGHT_BEACON_PUSH);
+            telemetry.addData("Color: ", color);
+            telemetry.update();
+            sleep(500);
+        } else {
+            telemetry.addData("Color: ", color);
+            telemetry.update();
+            sleep(500);
+        }
+        telemetry.addLine("Hitting Beacon");
+        telemetry.update();
+        if (balin.beaconPushLeft.getPosition() == balin.LEFT_BEACON_INITIAL_STATE || balin.beaconPushRight.getPosition() == balin.RIGHT_BEACON_INITIAL_STATE) {
+            balin.moveStraightnew(4, this);
+            telemetry.addLine("Hit Beacon");
+            telemetry.update();
+        }
+        balin.rest();
+        //balin.changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        balin.adjustToDistance(14, .14, this);
+        white_line = false;
+        balin.fr.setPower(-.7);
+        balin.br.setPower(.7);
+        balin.fl.setPower(.7);
+        balin.bl.setPower(-.72);
+        telemetry.addLine("Starting to strafe");
+        sleep(1245);
+       // balin.fr.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        while (!white_line && opModeIsActive() && !isStopRequested()) {
+            if (balin.ods.getRawLightDetected() >= .5) {
+                white_line = true;
+                //double power = balin.coastStrafe(30, balin.fr.getCurrentPosition());
+                double power = .4;
+                balin.fr.setPower(-power);
+                balin.br.setPower(power);
+                balin.fl.setPower(power);
+                balin.bl.setPower(-power);
+            }
+        }
+        balin.setDrivePower(0);
+        sleep(200);
+        white_line = false;
+        while (!white_line && opModeIsActive() && !isStopRequested()) {
+            if (balin.ods.getRawLightDetected() >= .5) {
+                white_line = true;
+            }
+            balin.fr.setPower(.4);
+            balin.br.setPower(-.4);
+            balin.fl.setPower(-.4);
+            balin.bl.setPower(.4);
+        }
+        AlignToWithinOf(90, .5, .18);
+        telemetry.addLine("Detecting Color");
+        telemetry.update();
+        color = balin.detectColor();
+        balin.setDrivePower(0);
+        if (color.equals("Red")) {
+            balin.beaconPushLeft.setPosition(balin.LEFT_BEACON_PUSH);
+            balin.beaconPushRight.setPosition(balin.RIGHT_BEACON_INITIAL_STATE);
+            telemetry.addData("Color: ", color);
+            telemetry.update();
+            sleep(500);
+        } else if (color.equals("Blue")) {
+            balin.beaconPushLeft.setPosition(balin.LEFT_BEACON_INITIAL_STATE);
+            balin.beaconPushRight.setPosition(balin.RIGHT_BEACON_PUSH);
+            telemetry.addData("Color: ", color);
+            telemetry.update();
+            sleep(500);
+        } else {
+            telemetry.addData("Color: ", color);
+            telemetry.update();
+            sleep(500);
+        }
+        telemetry.addLine("Hitting Beacon");
+        telemetry.update();
+        if (balin.beaconPushLeft.getPosition() == balin.LEFT_BEACON_INITIAL_STATE || balin.beaconPushRight.getPosition() == balin.RIGHT_BEACON_INITIAL_STATE) {
+            balin.moveStraightnew(4, this);
+            telemetry.addLine("Hit Beacon");
+            telemetry.update();
+        }
+        balin.rest();
     }
 
     // This is our most used, and most useful method.
@@ -132,6 +251,7 @@ public class TurningTests extends LinearOpMode {
         TurnRightAbsolute(expected - threshold, power, this);
         TurnLeftAbsolute(expected + threshold, power, this);
         TurnRightAbsolute(expected - threshold, power, this);
+        balin.changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
     public void TurnLeftPLoop(double degrees, double maxPower, LinearOpMode opMode){
         //Max Power should be normally set to .5, but for very precise turns a value of .05 is reccomended.
