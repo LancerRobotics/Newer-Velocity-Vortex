@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.DriversAndHardware;
 
 import com.kauailabs.navx.ftc.AHRS;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -45,7 +47,8 @@ public class Hardware3415 {
     public DcMotor liftRight = null;
     public DcMotor piston = null;
     public Servo beaconPushLeft = null, beaconPushRight = null, clampLeft = null,
-            clampRight = null, rollerRelease = null, door = null;
+            clampRight = null, rollerRelease = null, door = null,  flap = null;
+    public CRServo rotate = null;
     public AHRS navx_device = null;
     public ColorSensor colorSensor = null;
     //public ColorSensor lineTrackerF = null;
@@ -57,8 +60,8 @@ public class Hardware3415 {
     public boolean beaconBlue;
 
     public static final double LEFT_BEACON_INITIAL_STATE = 190.0 / 255;
-    public static final double LEFT_BEACON_PUSH = 24.0 / 255;
-    public static final double RIGHT_BEACON_PUSH= 220.0 / 255;
+    public static final double LEFT_BEACON_PUSH = 34.0 / 255;
+    public static final double RIGHT_BEACON_PUSH= 210.0 / 255;
     public static final double RIGHT_BEACON_INITIAL_STATE = 54.0/255;
     public static final double LEFT_CLAMP_INITIAL_STATE = 1;
     public static final double LEFT_CLAMP_UP = 0;
@@ -70,6 +73,8 @@ public class Hardware3415 {
     public static final double ROLLER_RELEASE_OUT = 0.0;
     public static final double DOOR_CLOSED = 230.0 / 255; //FIND VALUES FOR THIS
     public static final double DOOR_OPEN = 0.0;
+    public static final double FLAP_DOWN = 1;
+    public static final double FLAP_UP = 50.0/255;
 
 
     //Motor, Servo, and Sensor Names
@@ -102,17 +107,10 @@ public class Hardware3415 {
     public static final double HEADING_THRESHOLD = 1;      // As tight as we can make it with an integer gyro
     public static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
     public static final double P_DRIVE_COEFF = 0.15;
-    public static final double MAX_MOTOR_SPEED = 0.86;
+    public static final double MAX_MOTOR_SPEED = 0.75;
     public static final double WHEEL_DIAMETER = 3.93701;
     public static final String cdim = "dim";
 
-    byte[] range1Cache; //The read will return an array of bytes. They are stored in this variable
-
-    public static final int RANGE1_REG_START = 0x04; //Register to start reading
-    public static final int RANGE1_READ_LENGTH = 2; //Number of byte to read
-
-    public I2cDevice RANGE1 = null;
-    public I2cDeviceSynch RANGE1Reader = null;
 
     byte[] range2Cache;
 
@@ -121,7 +119,6 @@ public class Hardware3415 {
 
     public I2cDevice RANGE2 = null;
     public I2cDeviceSynch RANGE2Reader = null;
-
     public DigitalChannel limit = null;
     public boolean limitState;
 
@@ -159,14 +156,14 @@ public class Hardware3415 {
         br = hwMap.dcMotor.get(brName);
         collector = hwMap.dcMotor.get(collectorName);
         piston = hwMap.dcMotor.get(pistonName);
-        liftRight = hwMap.dcMotor.get(liftRightName);
-        liftLeft = hwMap.dcMotor.get(liftLeftName);
+        //liftRight = hwMap.dcMotor.get(liftRightName);
+        //liftLeft = hwMap.dcMotor.get(liftLeftName);
         if (autonomous) {
             fl.setDirection(DcMotor.Direction.REVERSE);
             bl.setDirection(DcMotor.Direction.REVERSE);
         }
-        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        //liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        //liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         piston.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -177,7 +174,13 @@ public class Hardware3415 {
         br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Set all motors to zero power
-        restAllMotors();
+        //restAllMotors();
+        piston.setPower(0);
+        collector.setPower(0);
+        fl.setPower(0);
+        fr.setPower(0);
+        bl.setPower(0);
+        br.setPower(0);
 
         // Set all motors to run without encoders.
         // May want to use RUN_USING_ENCODERS if encoders are installed.
@@ -187,40 +190,38 @@ public class Hardware3415 {
         br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         collector.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         piston.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        liftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //liftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         // Define and initialize ALL installed servos.
         beaconPushLeft = hwMap.servo.get(beaconPushLeftName);
         beaconPushRight = hwMap.servo.get(beaconPushRightName);
-        rollerRelease = hwMap.servo.get(rollerReleaseName);
-        clampLeft = hwMap.servo.get(clampLeftName);
-        clampRight = hwMap.servo.get(clampRightName);
-        door = hwMap.servo.get(doorName);
-
+        //rollerRelease = hwMap.servo.get(rollerReleaseName);
+        //clampLeft = hwMap.servo.get(clampLeftName);
+        //clampRight = hwMap.servo.get(clampRightName);
+        //door = hwMap.servo.get(doorName);
+        rotate = hwMap.crservo.get("rotate");
+        flap = hwMap.servo.get("flap");
+        rotate.setPower(0);
+        flap.setPosition(FLAP_DOWN);
         if (autonomous) {
             beaconPushLeft.setPosition(LEFT_BEACON_PUSH);
             beaconPushRight.setPosition(RIGHT_BEACON_PUSH);
-            clampLeft.setPosition(LEFT_CLAMP_INITIAL_STATE);
-            clampRight.setPosition(RIGHT_CLAMP_INITIAL_STATE);
-            rollerRelease.setPosition(ROLLER_RELEASE_IN);
-            door.setPosition(DOOR_CLOSED);
+            //clampLeft.setPosition(LEFT_CLAMP_INITIAL_STATE);
+            //clampRight.setPosition(RIGHT_CLAMP_INITIAL_STATE);
+            //rollerRelease.setPosition(ROLLER_RELEASE_IN);
+            //door.setPosition(DOOR_CLOSED);
             fl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             fr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
             //Define all sensors
-            colorSensor = hwMap.colorSensor.get(colorSensorName);
-            colorSensor.enableLed(false);
+
             //lineTrackerF = hwMap.colorSensor.get(lineTrackerFName);
             //lineTrackerB = hwMap.colorSensor.get(lineTrackerBName);
             ods = hwMap.opticalDistanceSensor.get(odsName);
-            odsB = hwMap.opticalDistanceSensor.get(odsbName);
-            RANGE1 = hwMap.i2cDevice.get(sonarName);
-            RANGE1Reader = new I2cDeviceSynchImpl(RANGE1, I2cAddr.create8bit(0x28), false);
-            RANGE1Reader.engage();
 
             RANGE2 = hwMap.i2cDevice.get(sonarName2);
             RANGE2Reader = new I2cDeviceSynchImpl(RANGE2, I2cAddr.create8bit(0x38), false);
@@ -237,15 +238,15 @@ public class Hardware3415 {
             beaconPushLeft.setPosition(beaconPushLeftPositions[0]);
             beaconPushRightPos = 1;
             beaconPushRight.setPosition(beaconPushRightPositions[0]);
-            doorPos = 1;
-            clampLeft.setPosition(LEFT_CLAMP_INITIAL_STATE);
-            clampRight.setPosition(RIGHT_CLAMP_INITIAL_STATE);
-            rollerRelease.setPosition(ROLLER_RELEASE_IN);
-            door.setPosition(doorPositions[0]);
-            limit = hwMap.digitalChannel.get("lift_switch");
-            limitState = limit.getState();
+            //doorPos = 1;
+            //clampLeft.setPosition(LEFT_CLAMP_INITIAL_STATE);
+            //clampRight.setPosition(RIGHT_CLAMP_INITIAL_STATE);
+            //rollerRelease.setPosition(ROLLER_RELEASE_IN);
+            //door.setPosition(doorPositions[0]);
+
         }
     }
+
 
     /***
      * waitForTick implements a periodic delay. However, this acts like a metronome with a regular
@@ -398,16 +399,46 @@ public class Hardware3415 {
             return true;
         return false;
     }
+    public void Move(double centimeters, double power) {
+        changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        double ticks = (int) (centimeters * 1140.0 / (4.0 * Math.PI * 2.0));
+        int RBPos = Math.abs(br.getCurrentPosition());
+        int RFPos = Math.abs(fr.getCurrentPosition());
+        int LBPos = Math.abs(bl.getCurrentPosition());
+        int LFPos = Math.abs(fl.getCurrentPosition());
+        double avg = (RBPos + LBPos + RFPos + LFPos)/4;
+        while(avg < ticks) {
+            setDrivePower(power);
+            RBPos = Math.abs(br.getCurrentPosition());
+            RFPos = Math.abs(fr.getCurrentPosition());
+            LBPos = Math.abs(bl.getCurrentPosition());
+            LFPos = Math.abs(fl.getCurrentPosition());
+            avg = (RBPos + LBPos + RFPos + LFPos) / 4;
+        }
+        setDrivePower(0);
+    }
+
     public boolean moveStraightnew(double inches, LinearOpMode opMode){
-        changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        while(br.getCurrentPosition()!=0 && opMode.opModeIsActive()) {
+            br.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+
         int targetTick = (int) (inches * 1140.0 / (4.0 * Math.PI * 2.0));
         br.setTargetPosition(targetTick);
-        setDrivePower(.3);
-        while(br.getCurrentPosition()< targetTick && br.isBusy() && opMode.opModeIsActive() && !opMode.isStopRequested()){
+        if(inches >  0) {
+            setDrivePower(.35);
+            while (br.getCurrentPosition() < targetTick && br.isBusy() && opMode.opModeIsActive() && !opMode.isStopRequested()) {
 
+            }
         }
+        else{
+            setDrivePower(-.35);
+            while(br.getCurrentPosition()> targetTick && br.isBusy() && opMode.opModeIsActive() && !opMode.isStopRequested()) {
+
+            }
+        }
+
         setDrivePower(0);
         return true;
     }
@@ -461,97 +492,6 @@ public class Hardware3415 {
 
     }
 
-    public void newMoveStraight(int inches, boolean backwards, LinearOpMode opMode) {
-        changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        changeDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        int targetTick = (int) (inches * 1140.0 / (4.0 * Math.PI * 2.0));
-        if (!backwards && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-
-            if (motorsReset(opMode)) {
-                setDriveTarget(targetTick);
-                changeDriveMode(DcMotor.RunMode.RUN_TO_POSITION);
-            }
-            while (!motorsTarget(targetTick, opMode) && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-                setDrivePower(coast(targetTick, smallest(fl.getCurrentPosition(), bl.getCurrentPosition(), fr.getCurrentPosition(), br.getCurrentPosition())));
-                opMode.telemetry.addData("Encoders Reset?", motorsReset(opMode));
-                opMode.telemetry.addData("Current tick values", fl.getCurrentPosition());
-                opMode.telemetry.addData("Current tick values", br.getCurrentPosition());
-                opMode.telemetry.update();
-                waitForTick(40);
-            }
-            rest();
-            changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        } else {
-            if (motorsReset(opMode) && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-                setDriveTarget(targetTick);
-                changeDriveMode(DcMotor.RunMode.RUN_TO_POSITION);
-            }
-            while ((!motorsTarget(targetTick, opMode) && opMode.opModeIsActive() && !opMode.isStopRequested())) {
-                setDrivePower(-coast(targetTick, smallest(fl.getCurrentPosition(), bl.getCurrentPosition(), fr.getCurrentPosition(), br.getCurrentPosition())));
-                waitForTick(40);
-            }
-            rest();
-            changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        }
-
-    }
-
-    public void moveStraightWithOr(int inches, boolean backwards, LinearOpMode opMode) {
-        opMode.telemetry.addLine("Set to Run Using Encoder");
-        opMode.telemetry.update();
-        changeDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        opMode.telemetry.addLine("Set to Stop And Reset Encoder");
-        opMode.telemetry.update();
-        changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        int targetTick = (int) (inches * 1140.0 / (4.0 * Math.PI * 2.0));
-        if (!backwards && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-            while (opMode.opModeIsActive() && !opMode.isStopRequested() && !motorsReset(opMode)) {
-                opMode.telemetry.addLine("Waiting For Motors To Reset");
-                opMode.telemetry.update();
-            }
-            opMode.telemetry.addLine("Setting Target");
-            opMode.telemetry.update();
-            setDriveTarget(targetTick);
-            opMode.telemetry.addLine("Changing Motor Mode To Run To Position");
-            opMode.telemetry.update();
-            changeDriveMode(DcMotor.RunMode.RUN_TO_POSITION);
-            while (!motorsTarget(targetTick, opMode) && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-                setDrivePower(coast(targetTick, smallest(fl.getCurrentPosition(), bl.getCurrentPosition(), fr.getCurrentPosition(), br.getCurrentPosition())));
-                opMode.telemetry.addData("Encoders Reset?", motorsReset(opMode));
-                opMode.telemetry.addData("Current tick values", fl.getCurrentPosition());
-                opMode.telemetry.addData("Current tick values", br.getCurrentPosition());
-                opMode.telemetry.update();
-                waitForTick(40);
-            }
-            rest();
-            changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        } else {
-            while (opMode.opModeIsActive() && !opMode.isStopRequested() && !motorsReset(opMode)) {
-                opMode.telemetry.addLine("Waiting For Motors To Reset");
-                opMode.telemetry.update();
-            }
-            opMode.telemetry.addLine("Setting Target");
-            opMode.telemetry.update();
-            setDriveTarget(targetTick);
-            opMode.telemetry.addLine("Changing Motor Mode To Run To Position");
-            opMode.telemetry.update();
-            changeDriveMode(DcMotor.RunMode.RUN_TO_POSITION);
-            while (!motorsTarget(targetTick, opMode) && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-                setDrivePower(-coast(targetTick, smallest(fl.getCurrentPosition(), bl.getCurrentPosition(), fr.getCurrentPosition(), br.getCurrentPosition())));
-                waitForTick(40);
-            }
-            rest();
-            changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        }
-        changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        restAllMotors();
-        changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    }
 
     public void moveStraight(int inches, boolean backwards, LinearOpMode opMode) {
         changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -608,11 +548,21 @@ public class Hardware3415 {
         return smallest;
     }
 
-    public static double coast(int target, int currentPosition) {
+    public static double coast(int target, int currentPosition, int iPos) {
+        target = (int) (target * 1140.0 / (4.0 * Math.PI * 2.0));
         target = Math.abs(target);
         currentPosition = Math.abs(currentPosition);
-        double power = (currentPosition * 1.0) / target;
-        power = .9 / (1 + Math.pow(2.7182, 1.65 * power));
+        double power = ((currentPosition-iPos) * 1.0) / target;
+        power = .9 / (1 + Math.pow(2.7182, 1.34 * power));
+        return power;
+    }
+    public static double coastStrafe(int target, int currentPosition, int iPos, LinearOpMode opMode) {
+        target = (int) (target * 1140.0 / (4.0 * Math.PI * 2.0));
+        target = Math.abs(target);
+        currentPosition = Math.abs(currentPosition);
+        double power = ((currentPosition-iPos) * 1.0) / target;
+        power = 1.4 / (1 + Math.pow(2.7182, .8 * power));
+        opMode.telemetry.addData("power: ", power);
         return power;
     }
 
@@ -883,11 +833,7 @@ public class Hardware3415 {
         }
     }
 
-    public double readSonar1() {
-        range1Cache = RANGE1Reader.read(RANGE1_REG_START, RANGE1_READ_LENGTH);
-        double sonarData = range1Cache[0] & 0xFF;
-        return sonarData;
-    }
+
 
     public double readSonar2() {
         range2Cache = RANGE2Reader.read(RANGE2_REG_START, RANGE2_READ_LENGTH);
@@ -909,7 +855,36 @@ public class Hardware3415 {
             } else {
                 done = true;
             }
+            opMode.telemetry.addData("Range: ", readSonar2());
             restAndSleep(opMode);
+            opMode.telemetry.update();
+        }
+    }
+    public void adjustToDistanceShlok(double distance, double power, LinearOpMode opMode){
+        while(readSonar2()>50){
+
+        }
+        double difference = readSonar2()-distance;
+        moveStraightnew(difference*0.393701, opMode);
+    }
+
+    public void adjustToDistanceBad(double distance, double power, LinearOpMode opMode) {
+        boolean done = false;
+        while(opMode.opModeIsActive() && !opMode.isStopRequested() && !done) {
+            if (readSonar2() < distance - 7.5) {
+                while (readSonar2() < distance - 7.5 && opMode.opModeIsActive() && !opMode.isStopRequested() && readSonar2()<50) {
+                    setDrivePower(-power);
+                }
+            } else if (readSonar2() > distance + 7.5) {
+                while (readSonar2() > distance + 7.5 && opMode.opModeIsActive() && !opMode.isStopRequested() && readSonar2()<50) {
+                    setDrivePower(power);
+                }
+            } else {
+                done = true;
+            }
+            opMode.telemetry.addData("Range: ", readSonar2());
+            restAndSleep(opMode);
+            opMode.telemetry.update();
         }
     }
 
@@ -924,22 +899,10 @@ public class Hardware3415 {
             return "N/A";
         }
     }
+    public void Straighten(double a){
 
-    public void Straighten(double power){
-        while(Math.abs(Math.round(readSonar1()) - Math.round(readSonar2()))> 2 ){
-            if(readSonar1()< readSonar2() && ((readSonar1()<50) || (readSonar2()<50))){
-                fl.setPower(-power);
-                bl.setPower(-power);
-                fr.setPower(0);
-                br.setPower(0);
-            }
-            if(readSonar1() > readSonar2() && ((readSonar1()<50) || (readSonar2()<50))){
-                fr.setPower(-power);
-                br.setPower(-power);
-                fl.setPower(0);
-                bl.setPower(0);
-            }
-        }
-        setDrivePower(0);
     }
+
+
+
 }

@@ -57,7 +57,7 @@ import org.firstinspires.ftc.teamcode.DriversAndHardware.Hardware3415;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Teleop With Perspective Drive For Red Alliance", group="Competition")
+@TeleOp(name="Teleop With Perspective Drive For Red Alliance", group="Test")
 
 public class ColorSensorCollectorRed extends LinearOpMode {
 
