@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
 public class PixyCameraI2C extends LinearOpMode {
     public I2cDevice PIXY = null;
     public I2cDeviceSynch PIXYReader = null;
-    byte[] PIXYCache;
+    byte[] PIXYCacheX;
     public static final int PIXY_REG_START = 0x04;
     public static final int PIXY_READ_LENGTH = 2;
 
@@ -23,9 +23,9 @@ public class PixyCameraI2C extends LinearOpMode {
         PIXYReader.engage();
         waitForStart();
         while(opModeIsActive() && !isStopRequested()) {
-            PIXYCache = PIXYReader.read(PIXY_REG_START, PIXY_READ_LENGTH);
-            double pixyData = PIXYCache[0] & 0xFF;
-            telemetry.addData("Pixy Data", pixyData);
+            PIXYCacheX = PIXYReader.read(PIXY_REG_START, PIXY_READ_LENGTH);
+            double pixyDataX = PIXYCacheX[0] & 0xFF;
+            telemetry.addData("Pixy Data", pixyDataX);
         }
     }
 }
