@@ -59,7 +59,9 @@ public class TeleopWorlds extends LinearOpMode {
             }
 
             //Sets controls for linear slides on forklift
-
+            if(Math.abs(gamepad2.right_stick_y) > .15) {
+                Balin.lift(gamepad2.right_stick_y);
+            }
 
             //Sets controls for shooter
             if (gamepad1.right_trigger > .15) {

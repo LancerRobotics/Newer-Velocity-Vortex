@@ -168,7 +168,6 @@ public class Hardware3415 {
             bl.setDirection(DcMotor.Direction.REVERSE);
         }
         liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         piston.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
