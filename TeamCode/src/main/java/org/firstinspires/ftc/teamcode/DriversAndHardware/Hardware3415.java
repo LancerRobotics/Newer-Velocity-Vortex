@@ -59,32 +59,37 @@ public class Hardware3415 {
     //public OpticalDistanceSensor odsF = null;
     public boolean beaconBlue;
 
-    public static final double LEFT_BEACON_INITIAL_STATE = 190.0 / 255;
-    public static final double LEFT_BEACON_PUSH = 34.0 / 255;
-    public static final double RIGHT_BEACON_PUSH= 210.0 / 255;
-    public static final double RIGHT_BEACON_INITIAL_STATE = 54.0/255;
-    public static final double LEFT_CLAMP_INITIAL_STATE = 1;
-    public static final double LEFT_CLAMP_UP = 0;
-    public static final double LEFT_CLAMP_CLAMP = 70.0 / 255;
-    public static final double RIGHT_CLAMP_INITIAL_STATE = 0;
-    public static final double RIGHT_CLAMP_UP = 1;
-    public static final double RIGHT_CLAMP_CLAMP = 180.0 / 255;
+    public static final double LEFT_BEACON_INITIAL_STATE = 234.0 / 255;
+    public static final double LEFT_BEACON_PUSH = 13.0 / 255;
+    public static final double RIGHT_BEACON_PUSH= 230.0 / 255;
+    public static final double RIGHT_BEACON_INITIAL_STATE = 0;
+    public static final double LEFT_CLAMP_INITIAL_STATE = 9.0/255;
+    public static final double LEFT_CLAMP_UP = 235.0/255;
+    public static final double LEFT_CLAMP_CLAMP = 112.0 / 255;
+    public static final double RIGHT_CLAMP_INITIAL_STATE = 244.0/255;
+    public static final double RIGHT_CLAMP_UP = 0;
+    public static final double RIGHT_CLAMP_CLAMP = 123.0 / 255;
     public static final double ROLLER_RELEASE_IN = 245.0 / 255;
     public static final double ROLLER_RELEASE_OUT = 0.0;
     public static final double DOOR_CLOSED = 230.0 / 255; //FIND VALUES FOR THIS
     public static final double DOOR_OPEN = 0.0;
     public static final double FLAP_DOWN = 1;
-    public static final double FLAP_UP = 50.0/255;
+    public static final double FLAP_UP = 0;
+    public static final double FLAP_UP_POS = FLAP_UP;
+    public static final double FLAP_DOWN_POS = FLAP_UP_POS - 100.0/255;
+    public static final double FLAP_MID_POS = FLAP_UP_POS - 50.0/255;
 
 
     //Motor, Servo, and Sensor Names
     public static final String servo = "servo";
-    public static final String beaconPushLeftName = "beacon_left";
-    public static final String beaconPushRightName = "beacon_right";
-    public static final String clampLeftName = "clamp_left";
-    public static final String clampRightName = "clamp_right";
+    public static final String beaconPushLeftName = "beacon_left"; //Port Five
+    public static final String beaconPushRightName = "beacon_right"; //Port Six
+    public static final String clampLeftName = "clamp_left"; //Port Two
+    public static final String clampRightName = "clamp_right"; //Port One
     public static final String rollerReleaseName = "roller_release";
     public static final String doorName = "door";
+    public static final String flapperName = "flap"; //Port Three
+    public static final String turretName = "turret"; //Port Four
     public static final String frName = "front_right";
     public static final String flName = "front_left";
     public static final String brName = "back_right";
@@ -156,14 +161,14 @@ public class Hardware3415 {
         br = hwMap.dcMotor.get(brName);
         collector = hwMap.dcMotor.get(collectorName);
         piston = hwMap.dcMotor.get(pistonName);
-        //liftRight = hwMap.dcMotor.get(liftRightName);
-        //liftLeft = hwMap.dcMotor.get(liftLeftName);
+        liftRight = hwMap.dcMotor.get(liftRightName);
+        liftLeft = hwMap.dcMotor.get(liftLeftName);
         if (autonomous) {
             fl.setDirection(DcMotor.Direction.REVERSE);
             bl.setDirection(DcMotor.Direction.REVERSE);
         }
-        //liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        //liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         piston.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -174,7 +179,7 @@ public class Hardware3415 {
         br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Set all motors to zero power
-        //restAllMotors();
+        restAllMotors();
         piston.setPower(0);
         collector.setPower(0);
         fl.setPower(0);
@@ -190,28 +195,24 @@ public class Hardware3415 {
         br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         collector.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         piston.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        //liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        //liftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        liftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        liftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         // Define and initialize ALL installed servos.
         beaconPushLeft = hwMap.servo.get(beaconPushLeftName);
         beaconPushRight = hwMap.servo.get(beaconPushRightName);
-        //rollerRelease = hwMap.servo.get(rollerReleaseName);
-        //clampLeft = hwMap.servo.get(clampLeftName);
-        //clampRight = hwMap.servo.get(clampRightName);
-        //door = hwMap.servo.get(doorName);
-        rotate = hwMap.crservo.get("rotate");
-        flap = hwMap.servo.get("flap");
+        clampLeft = hwMap.servo.get(clampLeftName);
+        clampRight = hwMap.servo.get(clampRightName);
+        rotate = hwMap.crservo.get(turretName);
+        flap = hwMap.servo.get(flapperName);
         rotate.setPower(0);
         flap.setPosition(FLAP_DOWN);
         if (autonomous) {
             beaconPushLeft.setPosition(LEFT_BEACON_PUSH);
             beaconPushRight.setPosition(RIGHT_BEACON_PUSH);
-            //clampLeft.setPosition(LEFT_CLAMP_INITIAL_STATE);
-            //clampRight.setPosition(RIGHT_CLAMP_INITIAL_STATE);
-            //rollerRelease.setPosition(ROLLER_RELEASE_IN);
-            //door.setPosition(DOOR_CLOSED);
+            clampLeft.setPosition(LEFT_CLAMP_INITIAL_STATE);
+            clampRight.setPosition(RIGHT_CLAMP_INITIAL_STATE);
             fl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             fr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -238,12 +239,8 @@ public class Hardware3415 {
             beaconPushLeft.setPosition(beaconPushLeftPositions[0]);
             beaconPushRightPos = 1;
             beaconPushRight.setPosition(beaconPushRightPositions[0]);
-            //doorPos = 1;
-            //clampLeft.setPosition(LEFT_CLAMP_INITIAL_STATE);
-            //clampRight.setPosition(RIGHT_CLAMP_INITIAL_STATE);
-            //rollerRelease.setPosition(ROLLER_RELEASE_IN);
-            //door.setPosition(doorPositions[0]);
-
+            clampLeft.setPosition(LEFT_CLAMP_INITIAL_STATE);
+            clampRight.setPosition(RIGHT_CLAMP_INITIAL_STATE);
         }
     }
 
