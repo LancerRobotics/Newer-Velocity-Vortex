@@ -73,11 +73,11 @@ public class Hardware3415 {
     public static final double ROLLER_RELEASE_OUT = 0.0;
     public static final double DOOR_CLOSED = 230.0 / 255; //FIND VALUES FOR THIS
     public static final double DOOR_OPEN = 0.0;
-    public static final double FLAP_DOWN = 1;
-    public static final double FLAP_UP = 0;
-    public static final double FLAP_UP_POS = FLAP_UP;
-    public static final double FLAP_DOWN_POS = FLAP_UP_POS - 100.0/255;
-    public static final double FLAP_MID_POS = FLAP_UP_POS - 50.0/255;
+    public static final double FLAP_DOWN = 1; //THIS SHOULD BE THE INITIAL POSITION OF THE FLAP
+    public static final double FLAP_UP = 0; //DEPRECATED, JUST HERE UNTIL I CAN REMOVE IT
+    public static final double FLAP_UP_POS = 0;
+    public static final double FLAP_DOWN_POS = 100.0/255;
+    public static final double FLAP_MID_POS = 50.0/255;
 
 
     //Motor, Servo, and Sensor Names
