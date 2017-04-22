@@ -97,7 +97,7 @@ public class ColorSensorCollectorBlue extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        Balin.rollerRelease.setPosition(Balin.ROLLER_RELEASE_OUT);
+        //Balin.rollerRelease.setPosition(Balin.ROLLER_RELEASE_OUT);
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive() && !isStopRequested()) {
@@ -195,9 +195,9 @@ public class ColorSensorCollectorBlue extends LinearOpMode {
             Balin.beaconPushRightPos = Balin.beaconPushRightToggleReturnArray[0];
             Balin.beaconPushRightButtonPressed = Balin.beaconPushRightToggleReturnArray[1] == 1;
 
-            Balin.doorToggleReturnArray = Balin.servoToggle(gamepad1.a, Balin.door, Balin.doorPositions, Balin.doorPos, Balin.doorButtonPressed, this);
-            Balin.doorPos = Balin.doorToggleReturnArray[0];
-            Balin.doorButtonPressed = Balin.doorToggleReturnArray[1] == 1;
+            //Balin.doorToggleReturnArray = Balin.servoToggle(gamepad1.a, Balin.door, Balin.doorPositions, Balin.doorPos, Balin.doorButtonPressed, this);
+            //Balin.doorPos = Balin.doorToggleReturnArray[0];
+            //Balin.doorButtonPressed = Balin.doorToggleReturnArray[1] == 1;
 
             if(gamepad2.a) {
                 Balin.clampLeft.setPosition(122.0/255); //CLAMP_CLAMP Positions need to be changed

@@ -14,11 +14,11 @@ public class CapBallShootAuton extends LinearOpMode {
     public void runOpMode(){
         balin.init(hardwareMap, true);
         balin.shoot(1);
-        balin.door.setPosition(balin.DOOR_OPEN);
+        //balin.door.setPosition(balin.DOOR_OPEN);
         balin.collector.setPower(1.0);
         sleep(2000);
         balin.collector.setPower(0);
-        balin.door.setPosition(balin.DOOR_CLOSED);
+        //balin.door.setPosition(balin.DOOR_CLOSED);
         sleep(500);
         //Shoot second particle
         balin.shoot(1.0);

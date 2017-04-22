@@ -46,11 +46,15 @@ public class Hardware3415 {
     public DcMotor liftLeft = null;
     public DcMotor liftRight = null;
     public DcMotor piston = null;
-    public Servo beaconPushLeft = null, beaconPushRight = null, clampLeft = null,
-            clampRight = null, rollerRelease = null, door = null,  flap = null;
+    public Servo beaconPushLeft = null;
+    public Servo beaconPushRight = null;
+    public Servo clampLeft = null;
+    public Servo clampRight = null;
+    public Servo flap = null;
     public CRServo rotate = null;
     public AHRS navx_device = null;
     public ColorSensor colorSensor = null;
+    HardwareMap hwMap = null;
     //public ColorSensor lineTrackerF = null;
     //public ColorSensor lineTrackerB = null;
     //
@@ -59,25 +63,24 @@ public class Hardware3415 {
     //public OpticalDistanceSensor odsF = null;
     public boolean beaconBlue;
 
-    public static final double LEFT_BEACON_INITIAL_STATE = 234.0 / 255;
-    public static final double LEFT_BEACON_PUSH = 13.0 / 255;
-    public static final double RIGHT_BEACON_PUSH= 230.0 / 255;
-    public static final double RIGHT_BEACON_INITIAL_STATE = 0;
+    public static final double LEFT_BEACON_INITIAL_STATE =  13.0 / 255;
+    public static final double LEFT_BEACON_PUSH = 234.0 / 255;
+    public static final double RIGHT_BEACON_PUSH= 0;
+    public static final double RIGHT_BEACON_INITIAL_STATE =  230.0 / 255;
     public static final double LEFT_CLAMP_INITIAL_STATE = 9.0/255;
-    public static final double LEFT_CLAMP_UP = 235.0/255;
-    public static final double LEFT_CLAMP_CLAMP = 112.0 / 255;
+    public static final double LEFT_CLAMP_UP = 234.0/255;
+    public static final double LEFT_CLAMP_CLAMP = 160.0 / 255;
     public static final double RIGHT_CLAMP_INITIAL_STATE = 244.0/255;
     public static final double RIGHT_CLAMP_UP = 0;
-    public static final double RIGHT_CLAMP_CLAMP = 123.0 / 255;
-    public static final double ROLLER_RELEASE_IN = 245.0 / 255;
+    public static final double RIGHT_CLAMP_CLAMP = 70.0 / 255;
     public static final double ROLLER_RELEASE_OUT = 0.0;
     public static final double DOOR_CLOSED = 230.0 / 255; //FIND VALUES FOR THIS
     public static final double DOOR_OPEN = 0.0;
     public static final double FLAP_DOWN = 1; //THIS SHOULD BE THE INITIAL POSITION OF THE FLAP
     public static final double FLAP_UP = 0; //DEPRECATED, JUST HERE UNTIL I CAN REMOVE IT
-    public static final double FLAP_UP_POS = 0;
-    public static final double FLAP_DOWN_POS = 100.0/255;
-    public static final double FLAP_MID_POS = 50.0/255;
+    public static final double FLAP_UP_POS = 75.0/255;
+    public static final double FLAP_DOWN_POS = 170.0/255;
+    public static final double FLAP_MID_POS = 120.0/255;
 
 
     //Motor, Servo, and Sensor Names
@@ -86,8 +89,6 @@ public class Hardware3415 {
     public static final String beaconPushRightName = "beacon_right"; //Port Six
     public static final String clampLeftName = "clamp_left"; //Port Two
     public static final String clampRightName = "clamp_right"; //Port One
-    public static final String rollerReleaseName = "roller_release";
-    public static final String doorName = "door";
     public static final String flapperName = "flap"; //Port Three
     public static final String turretName = "turret"; //Port Four
     public static final String frName = "front_right";
@@ -128,7 +129,6 @@ public class Hardware3415 {
     public boolean limitState;
 
     /* Local OpMode members. */
-    HardwareMap hwMap = null;
     private ElapsedTime period = new ElapsedTime();
 
     /*Toggle Stuff*/
@@ -217,12 +217,13 @@ public class Hardware3415 {
             bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+
             //Define all sensors
 
             //lineTrackerF = hwMap.colorSensor.get(lineTrackerFName);
             //lineTrackerB = hwMap.colorSensor.get(lineTrackerBName);
             ods = hwMap.opticalDistanceSensor.get(odsName);
-
+            colorSensor = hwMap.colorSensor.get(colorSensorName);
             RANGE2 = hwMap.i2cDevice.get(sonarName2);
             RANGE2Reader = new I2cDeviceSynchImpl(RANGE2, I2cAddr.create8bit(0x38), false);
             RANGE2Reader.engage();
@@ -415,28 +416,55 @@ public class Hardware3415 {
     }
 
     public boolean moveStraightnew(double inches, LinearOpMode opMode){
+        br.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         while(br.getCurrentPosition()!=0 && opMode.opModeIsActive()) {
-            br.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        opMode.telemetry.addLine("Resetting Encoders");
         }
-
+        br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        opMode.telemetry.addLine("Beginning to Move");
+        opMode.sleep(500);
         int targetTick = (int) (inches * 1140.0 / (4.0 * Math.PI * 2.0));
         br.setTargetPosition(targetTick);
         if(inches >  0) {
+            setDrivePower(.35);
+            while (br.getCurrentPosition() < targetTick && opMode.opModeIsActive() && !opMode.isStopRequested()) {
+                opMode.telemetry.addData("Encoder Pos: ", br.getCurrentPosition());
+                opMode.telemetry.addData("Target Pos: ", targetTick);
+            }
+        }
+        else{
+            setDrivePower(-.35);
+            while(br.getCurrentPosition()> targetTick && opMode.opModeIsActive() && !opMode.isStopRequested()) {
+                opMode.telemetry.addData("Encoder Pos: ", br.getCurrentPosition());
+                opMode.telemetry.addData("Target Pos: ", targetTick);
+            }
+        }
+
+        setDrivePower(0);
+        return true;
+    }
+    public void moveStraight(double inches, LinearOpMode opMode){
+        //br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        int iPos = br.getCurrentPosition();
+        int targetTick = (int) (inches * 1140.0 / (4.0 * Math.PI * 2.0));
+
+        if(inches >  0) {
+            targetTick += iPos;
+            br.setTargetPosition(targetTick);
             setDrivePower(.35);
             while (br.getCurrentPosition() < targetTick && br.isBusy() && opMode.opModeIsActive() && !opMode.isStopRequested()) {
 
             }
         }
         else{
+            targetTick += iPos;
+            br.setTargetPosition(targetTick);
             setDrivePower(-.35);
             while(br.getCurrentPosition()> targetTick && br.isBusy() && opMode.opModeIsActive() && !opMode.isStopRequested()) {
 
             }
         }
-
         setDrivePower(0);
-        return true;
     }
 
     public boolean turnNew(double inches, LinearOpMode opMode){
@@ -453,79 +481,6 @@ public class Hardware3415 {
         }
         setDrivePower(0);
         return true;
-    }
-    public void moveStraight1(int inches, boolean backwards, LinearOpMode opMode) {
-        fr.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        fr.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        int targetTick = (int) (inches * 1140.0 / (4.0 * Math.PI * 2.0));
-        if (!backwards && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-
-            if (motorsReset(opMode)) {
-                fr.setTargetPosition(targetTick);
-                fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            }
-            while (!motorsTarget(targetTick, opMode) && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-                setDrivePower(.5);
-                opMode.telemetry.addData("Encoders Reset?", motorsReset(opMode));
-                opMode.telemetry.addData("Current tick values", fl.getCurrentPosition());
-                opMode.telemetry.addData("Current tick values", br.getCurrentPosition());
-                opMode.telemetry.update();
-                waitForTick(40);
-            }
-            setDrivePower(0.0);
-            fr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        } else {
-            if (motorsReset(opMode) && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-                setDriveTarget(targetTick);
-                changeDriveMode(DcMotor.RunMode.RUN_TO_POSITION);
-            }
-            while (!motorsTarget(targetTick, opMode) && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-                setDrivePower(.5);
-                waitForTick(40);
-            }
-            rest();
-            changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        }
-
-    }
-
-
-    public void moveStraight(int inches, boolean backwards, LinearOpMode opMode) {
-        changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        changeDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        int targetTick = (int) (inches * 1140.0 / (4.0 * Math.PI * 2.0));
-        if (!backwards && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-            if (motorsReset(opMode) && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-                setDriveTarget(targetTick);
-                changeDriveMode(DcMotor.RunMode.RUN_TO_POSITION);
-                while (!motorsTarget(targetTick, opMode) && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-                    //setDrivePower(coast(targetTick, smallest(fl.getCurrentPosition(), bl.getCurrentPosition(), fr.getCurrentPosition(), br.getCurrentPosition())));
-                    setDrivePower(.3);
-                    opMode.telemetry.addData("Encoders Reset?", motorsReset(opMode));
-                    opMode.telemetry.addData("Current tick values", fl.getCurrentPosition());
-                    opMode.telemetry.addData("Current tick values", br.getCurrentPosition());
-                    opMode.telemetry.update();
-                    waitForTick(40);
-                }
-            }
-            changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rest();
-        } else {
-            if (motorsReset(opMode) && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-                setDriveTarget(targetTick);
-                changeDriveMode(DcMotor.RunMode.RUN_TO_POSITION);
-                while ((fl.getCurrentPosition() < (fl.getTargetPosition() - 50) || bl.getCurrentPosition() < (bl.getTargetPosition() - 50) || br.getCurrentPosition() < (br.getTargetPosition() - 50) || fr.getCurrentPosition() < (fr.getTargetPosition() - 50)) && opMode.opModeIsActive() && !opMode.isStopRequested()) {
-                    //setDrivePower(-coast(targetTick, smallest(fl.getCurrentPosition(), bl.getCurrentPosition(), fr.getCurrentPosition(), br.getCurrentPosition())));
-                    setDrivePower(-.3);
-                    waitForTick(40);
-                }
-            }
-            changeDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            changeDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            rest();
-        }
     }
 
 
@@ -858,10 +813,19 @@ public class Hardware3415 {
         }
     }
     public void adjustToDistanceShlok(double distance, double power, LinearOpMode opMode){
-        while(readSonar2()>50){
+        while(readSonar2()==255){
 
         }
         double difference = readSonar2()-distance;
+        opMode.telemetry.addData("Moving distance", difference);
+        moveStraight(difference*0.393701, opMode);
+    }
+    public void adjustToDistanceShlok2(double distance, double power, LinearOpMode opMode){
+        while(readSonar2()==255){
+
+        }
+        double difference = readSonar2()-distance;
+        opMode.telemetry.addData("Moving distance", difference);
         moveStraightnew(difference*0.393701, opMode);
     }
 
